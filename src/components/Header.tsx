@@ -1,7 +1,7 @@
 export function Header() {
   return (
-    <header>
-      <h1>Study Planner</h1>
+    <header className="mb-4">
+      <h1 className="text-center text-primary">Study Planner</h1>
     </header>
   );
 }
