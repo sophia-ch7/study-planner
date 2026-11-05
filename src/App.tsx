@@ -57,6 +57,7 @@ function App() {
           <TaskFilters currentFilter={filter} onFilterChange={setFilter} />
           <TaskList
             tasks={filteredTasks}
+            totalCount={tasks.length}
             onToggle={handleToggleTask}
             onDelete={handleDeleteTask}
           />
