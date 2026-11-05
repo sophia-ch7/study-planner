@@ -2,9 +2,11 @@ import type { Task } from "../types/task";
 
 interface TaskItemProps {
   task: Task;
+  onToggle: (id: number | string) => void;
+  onDelete: (id: number | string) => void;
 }
 
-export function TaskItem({ task }: TaskItemProps) {
+export function TaskItem({ task, onToggle, onDelete }: TaskItemProps) {
   return (
     <div
       className={`card mb-3 ${task.completed ? "bg-light text-muted opacity-75" : ""}`}
@@ -27,10 +29,23 @@ export function TaskItem({ task }: TaskItemProps) {
           </span>
         </div>
         <p className="card-text">{task.description}</p>
-        <div>
+        <div className="d-flex justify-content-between align-items-center">
           <span className="badge bg-secondary">{task.category}</span>
+          <div className="btn-group ms-auto">
+            <button
+              className={`btn btn-sm ${task.completed ? "btn-secondary" : "btn-success"}`}
+              onClick={() => onToggle(task.id)}
+            >
+              {task.completed ? "Відновити" : "Виконати"}
+            </button>
+            <button
+              className="btn btn-sm btn-danger"
+              onClick={() => onDelete(task.id)}
+            >
+              Видалити
+            </button>
+          </div>
         </div>
-        {/* Кнопки видалення та виконання додамо на наступному кроці */}
       </div>
     </div>
   );
