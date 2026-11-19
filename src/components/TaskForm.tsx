@@ -1,85 +1,123 @@
-import { useState } from "react";
+import { useState, useEffect, type FormEvent } from "react";
 import type { Priority } from "../types/task";
+import { useTaskContext } from "../hooks/useTaskContext";
 
-interface TaskFormProps {
-  onAdd: (
-    title: string,
-    description: string,
-    category: string,
-    priority: Priority,
-  ) => void;
-}
+export function TaskForm() {
+  const { addTask, updateTask, editingTask, setEditingTask } = useTaskContext();
 
-export function TaskForm({ onAdd }: TaskFormProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [category, setCategory] = useState("");
   const [priority, setPriority] = useState<Priority>("medium");
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Зупиняємо перезавантаження сторінки
+  useEffect(() => {
+    if (editingTask) {
+      setTitle(editingTask.title);
+      setDescription(editingTask.description);
+      setCategory(editingTask.category);
+      setPriority(editingTask.priority);
+    } else {
+      resetForm();
+    }
+  }, [editingTask]);
 
-    if (!title.trim()) return; // Валідація: не додаємо порожнє завдання
-
-    onAdd(title, description, category, priority);
-
-    // Очищуємо форму після успішного додавання
+  const resetForm = () => {
     setTitle("");
     setDescription("");
     setCategory("");
     setPriority("medium");
   };
 
+  const handleSubmit = (e: FormEvent) => {
+    e.preventDefault();
+    if (!title.trim()) return;
+
+    if (editingTask) {
+      updateTask(
+        editingTask.id,
+        title.trim(),
+        description.trim(),
+        category.trim(),
+        priority,
+      );
+    } else {
+      addTask(title.trim(), description.trim(), category.trim(), priority);
+      resetForm();
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTask(null);
+    resetForm();
+  };
+
   return (
-    <div className="card mb-4 shadow-sm">
-      <div className="card-body">
-        <h5 className="card-title mb-3">Додати нове завдання</h5>
-        <form onSubmit={handleSubmit}>
-          <div className="mb-3">
-            <input
-              type="text"
-              className="form-control"
-              placeholder="Назва завдання (обов'язково)"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-          <div className="mb-3">
-            <textarea
-              className="form-control"
-              placeholder="Короткий опис"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-            />
-          </div>
-          <div className="row">
-            <div className="col-md-6 mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Категорія (наприклад, React)"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-            </div>
-            <div className="col-md-6 mb-3">
-              <select
-                className="form-select"
-                value={priority}
-                onChange={(e) => setPriority(e.target.value as Priority)}
-              >
-                <option value="low">Низька пріоритетність</option>
-                <option value="medium">Середня пріоритетність</option>
-                <option value="high">Висока пріоритетність</option>
-              </select>
-            </div>
-          </div>
-          <button type="submit" className="btn btn-primary w-100">
-            Додати завдання
-          </button>
-        </form>
+    <form onSubmit={handleSubmit} className="card card-body mb-4 shadow-sm">
+      <h5 className="card-title mb-3">
+        {editingTask ? "Редагувати завдання" : "Додати нове завдання"}
+      </h5>
+
+      <div className="mb-3">
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Назва завдання..."
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
       </div>
-    </div>
+
+      <div className="mb-3">
+        <textarea
+          className="form-control"
+          placeholder="Опис (необов'язково)"
+          rows={2}
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+        />
+      </div>
+
+      <div className="row g-2 mb-3">
+        <div className="col-md-6">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Категорія (напр. React)"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          />
+        </div>
+        <div className="col-md-6">
+          <select
+            className="form-select"
+            value={priority}
+            onChange={(e) => setPriority(e.target.value as Priority)}
+          >
+            <option value="low">Низький пріоритет</option>
+            <option value="medium">Середній пріоритет</option>
+            <option value="high">Високий пріоритет</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="d-flex gap-2">
+        <button
+          type="submit"
+          className={`btn ${editingTask ? "btn-warning" : "btn-primary"} flex-grow-1`}
+        >
+          {editingTask ? "Зберегти зміни" : "Додати завдання"}
+        </button>
+        {editingTask && (
+          <button
+            type="button"
+            className="btn btn-outline-secondary"
+            onClick={handleCancelEdit}
+          >
+            Скасувати
+          </button>
+        )}
+      </div>
+    </form>
   );
 }

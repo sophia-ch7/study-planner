@@ -1,20 +1,16 @@
-import type { Task } from "../types/task";
 import { TaskItem } from "./TaskItem";
+import { useTaskContext } from "../hooks/useTaskContext";
 
-interface TaskListProps {
-  tasks: Task[];
-  totalCount: number;
-  onToggle: (id: number | string) => void;
-  onDelete: (id: number | string) => void;
-}
+export function TaskList() {
+  const { tasks, filter } = useTaskContext();
 
-export function TaskList({
-  tasks,
-  totalCount,
-  onToggle,
-  onDelete,
-}: TaskListProps) {
-  if (totalCount === 0) {
+  const filteredTasks = tasks.filter((task) => {
+    if (filter === "completed") return task.completed;
+    if (filter === "uncompleted") return !task.completed;
+    return true;
+  });
+
+  if (tasks.length === 0) {
     return (
       <div className="alert alert-info text-center">
         Завдань поки немає.
@@ -24,7 +20,7 @@ export function TaskList({
     );
   }
 
-  if (tasks.length === 0) {
+  if (filteredTasks.length === 0) {
     return (
       <div className="alert alert-secondary text-center">
         За цим фільтром завдань немає.
@@ -34,13 +30,8 @@ export function TaskList({
 
   return (
     <div>
-      {tasks.map((task) => (
-        <TaskItem
-          key={task.id}
-          task={task}
-          onToggle={onToggle}
-          onDelete={onDelete}
-        />
+      {filteredTasks.map((task) => (
+        <TaskItem key={task.id} task={task} />
       ))}
     </div>
   );

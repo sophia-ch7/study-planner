@@ -1,31 +1,27 @@
+import { useTaskContext } from "../hooks/useTaskContext";
+
 export type FilterType = "all" | "completed" | "uncompleted";
 
-interface TaskFiltersProps {
-  currentFilter: FilterType;
-  onFilterChange: (filter: FilterType) => void;
-}
+export function TaskFilters() {
+  const { filter, setFilter } = useTaskContext();
 
-export function TaskFilters({
-  currentFilter,
-  onFilterChange,
-}: TaskFiltersProps) {
   return (
     <div className="btn-group mb-4 w-100">
       <button
-        className={`btn ${currentFilter === "all" ? "btn-primary" : "btn-outline-primary"}`}
-        onClick={() => onFilterChange("all")}
+        className={`btn ${filter === "all" ? "btn-primary" : "btn-outline-primary"}`}
+        onClick={() => setFilter("all")}
       >
         Всі
       </button>
       <button
-        className={`btn ${currentFilter === "completed" ? "btn-primary" : "btn-outline-primary"}`}
-        onClick={() => onFilterChange("completed")}
+        className={`btn ${filter === "completed" ? "btn-primary" : "btn-outline-primary"}`}
+        onClick={() => setFilter("completed")}
       >
         Виконані
       </button>
       <button
-        className={`btn ${currentFilter === "uncompleted" ? "btn-primary" : "btn-outline-primary"}`}
-        onClick={() => onFilterChange("uncompleted")}
+        className={`btn ${filter === "uncompleted" ? "btn-primary" : "btn-outline-primary"}`}
+        onClick={() => setFilter("uncompleted")}
       >
         Не виконані
       </button>

@@ -4,7 +4,8 @@ export interface Task {
   id: number | string;
   title: string;
   description: string;
-  completed: boolean;
-  priority: Priority;
   category: string;
+  priority: Priority;
+  completed: boolean;
+  isPendingDelete?: boolean;
 }
