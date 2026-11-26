@@ -1,60 +1,45 @@
+import { useState } from "react";
 import { Header } from "./components/Header";
 import { TaskForm } from "./components/TaskForm";
 import { TaskList } from "./components/TaskList";
 import { TaskStats } from "./components/TaskStats";
-import { TaskFilters } from "./components/TaskFilters";
 import { Toast } from "./components/Toast";
-import { TaskProvider } from "./context/TaskContext";
-import { useTaskContext } from "./hooks/useTaskContext";
+import { taskRepository } from "./repositories/taskRepository";
+import type { Task, Priority } from "./types/task";
 
-function MainContent() {
-  const { toast, hideToast, clearCompleted, resetTasks } = useTaskContext();
+export default function App() {
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  const handleAddTask = async (
+    title: string,
+    _description: string,
+    _category: string,
+    _priority: Priority,
+  ) => {
+    try {
+      const newTask = await taskRepository.create({ title, completed: false });
+      setTasks((prev) => [newTask, ...prev]);
+      setToastMessage("Завдання успішно створено на сервері!");
+    } catch (err) {
+      setToastMessage("Помилка створення завдання.");
+    }
+  };
 
   return (
     <div className="container py-4">
       <div className="row justify-content-center">
         <div className="col-md-8">
           <Header />
-          <TaskStats />
-          <TaskForm />
-          <TaskFilters />
-          <TaskList />
-
-          <div className="d-flex justify-content-between mt-4">
-            <button
-              className="btn btn-outline-danger btn-sm"
-              onClick={clearCompleted}
-            >
-              Очистити виконані
-            </button>
-            <button
-              className="btn btn-outline-secondary btn-sm"
-              onClick={resetTasks}
-            >
-              Скинути дані
-            </button>
-          </div>
+          <TaskStats tasks={tasks} />
+          <TaskForm onAddTask={handleAddTask} />
+          <TaskList tasks={tasks} setTasks={setTasks} />
         </div>
       </div>
 
-      {toast && (
-        <Toast
-          message={toast.message}
-          subMessage={toast.subMessage}
-          actionLabel={toast.actionLabel}
-          onAction={toast.onAction}
-          onClose={hideToast}
-          duration={toast.duration}
-        />
+      {toastMessage && (
+        <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
       )}
     </div>
-  );
-}
-
-export default function App() {
-  return (
-    <TaskProvider>
-      <MainContent />
-    </TaskProvider>
   );
 }

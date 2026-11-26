@@ -1,31 +1,32 @@
-import { useTaskContext } from "../hooks/useTaskContext";
+import type { Task } from "../types/task";
 
-export function TaskStats() {
-  const { tasks } = useTaskContext();
+interface TaskStatsProps {
+  tasks: Task[];
+}
 
-  const activeTasks = tasks.filter((t) => !t.isPendingDelete);
-  const total = activeTasks.length;
-  const completed = activeTasks.filter((t) => t.completed).length;
-  const uncompleted = total - completed;
+export function TaskStats({ tasks }: TaskStatsProps) {
+  const totalTasks = tasks.length;
+  const completedTasks = tasks.filter((t) => t.completed).length;
+  const activeTasks = totalTasks - completedTasks;
 
   return (
-    <div className="row mb-4 text-center">
-      <div className="col">
-        <div className="p-3 bg-light border rounded">
-          <h6>Всього</h6>
-          <span className="fs-4 fw-bold text-primary">{total}</span>
+    <div className="row text-center mb-4">
+      <div className="col-4">
+        <div className="card bg-light p-2">
+          <div className="fs-4 fw-bold text-primary">{totalTasks}</div>
+          <div className="small text-muted">Всього</div>
         </div>
       </div>
-      <div className="col">
-        <div className="p-3 bg-light border rounded">
-          <h6>Виконано</h6>
-          <span className="fs-4 fw-bold text-success">{completed}</span>
+      <div className="col-4">
+        <div className="card bg-light p-2">
+          <div className="fs-4 fw-bold text-warning">{activeTasks}</div>
+          <div className="small text-muted">Активних</div>
         </div>
       </div>
-      <div className="col">
-        <div className="p-3 bg-light border rounded">
-          <h6>Не виконано</h6>
-          <span className="fs-4 fw-bold text-warning">{uncompleted}</span>
+      <div className="col-4">
+        <div className="card bg-light p-2">
+          <div className="fs-4 fw-bold text-success">{completedTasks}</div>
+          <div className="small text-muted">Виконано</div>
         </div>
       </div>
     </div>

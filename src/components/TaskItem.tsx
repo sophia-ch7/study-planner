@@ -1,95 +1,81 @@
 import type { Task } from "../types/task";
-import { useTaskContext } from "../hooks/useTaskContext";
+import { taskRepository } from "../repositories/taskRepository";
 
 interface TaskItemProps {
   task: Task;
+  onTaskToggle?: (id: number | string, newCompleted: boolean) => void;
+  onTaskDeleted?: (id: number | string) => void;
+  onShowDetails?: (id: number | string) => void;
 }
 
-export function TaskItem({ task }: TaskItemProps) {
-  const { toggleTask, requestDelete, undoDelete, setEditingTask } =
-    useTaskContext();
+export function TaskItem({
+  task,
+  onTaskToggle,
+  onTaskDeleted,
+  onShowDetails,
+}: TaskItemProps) {
+  const handleToggle = async () => {
+    const nextCompleted = !task.completed;
 
-  const getPriorityBadgeClass = (priority: string) => {
-    switch (priority) {
-      case "high":
-        return "bg-danger";
-      case "medium":
-        return "bg-warning text-dark";
-      case "low":
-        return "bg-info text-dark";
-      default:
-        return "bg-secondary";
+    if (onTaskToggle) {
+      onTaskToggle(task.id, nextCompleted);
+    }
+
+    try {
+      await taskRepository.update(task.id, { completed: nextCompleted });
+    } catch (err) {
+      console.error("Помилка оновлення статусу:", err);
+      if (onTaskToggle) {
+        onTaskToggle(task.id, !nextCompleted);
+      }
     }
   };
 
-  if (task.isPendingDelete) {
-    return (
-      <div className="card mb-3 border-danger-subtle bg-danger-subtle bg-opacity-10 opacity-75">
-        <div className="card-body d-flex justify-content-between align-items-center py-2">
-          <div>
-            <h6 className="card-title text-muted text-decoration-line-through m-0 mb-1">
-              {task.title}
-            </h6>
-            <small className="text-danger fw-semibold">
-              Очікує видалення...
-            </small>
-          </div>
-          <button
-            className="btn btn-sm btn-outline-danger"
-            onClick={() => undoDelete(task.id)}
-          >
-            Скасувати
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const handleDelete = async () => {
+    if (!window.confirm(`Видалити завдання "${task.title}"?`)) return;
+
+    try {
+      await taskRepository.delete(task.id);
+      if (onTaskDeleted) onTaskDeleted(task.id);
+    } catch (err) {
+      console.error("Помилка видалення:", err);
+    }
+  };
 
   return (
-    <div
-      className={`card mb-3 shadow-sm ${task.completed ? "opacity-75 bg-light" : ""}`}
-    >
-      <div className="card-body">
-        <div className="d-flex justify-content-between align-items-start mb-2">
-          <h5
-            className={`card-title m-0 ${task.completed ? "text-decoration-line-through text-muted" : ""}`}
+    <div className={`card mb-2 ${task.completed ? "bg-light" : ""}`}>
+      <div className="card-body d-flex justify-content-between align-items-center py-2">
+        <div className="form-check me-3">
+          <input
+            className="form-check-input me-2"
+            type="checkbox"
+            checked={task.completed}
+            onChange={handleToggle}
+            id={`task-${task.id}`}
+          />
+          <label
+            htmlFor={`task-${task.id}`}
+            className={`form-check-label ${task.completed ? "text-decoration-line-through text-muted" : ""}`}
           >
             {task.title}
-          </h5>
-          <span className={`badge ${getPriorityBadgeClass(task.priority)}`}>
-            {task.priority}
-          </span>
+          </label>
         </div>
 
-        {task.description && (
-          <p className="card-text text-muted small mb-2">{task.description}</p>
-        )}
-
-        <div className="d-flex align-items-center justify-content-between mt-3">
-          {task.category && (
-            <span className="badge bg-secondary">{task.category}</span>
+        <div className="d-flex gap-2 flex-shrink-0">
+          {onShowDetails && (
+            <button
+              className="btn btn-sm btn-outline-info"
+              onClick={() => onShowDetails(task.id)}
+            >
+              Деталі 🔍
+            </button>
           )}
-
-          <div className="btn-group ms-auto">
-            <button
-              className={`btn btn-sm ${task.completed ? "btn-outline-secondary" : "btn-success"}`}
-              onClick={() => toggleTask(task.id)}
-            >
-              {task.completed ? "Відновити" : "Виконати"}
-            </button>
-            <button
-              className="btn btn-sm btn-outline-primary"
-              onClick={() => setEditingTask(task)}
-            >
-              Редагувати
-            </button>
-            <button
-              className="btn btn-sm btn-danger"
-              onClick={() => requestDelete(task.id)}
-            >
-              Видалити
-            </button>
-          </div>
+          <button
+            className="btn btn-sm btn-outline-danger"
+            onClick={handleDelete}
+          >
+            Видалити 🗑️
+          </button>
         </div>
       </div>
     </div>
