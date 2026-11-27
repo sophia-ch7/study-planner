@@ -1,45 +1,39 @@
-import { useState } from "react";
-import { Header } from "./components/Header";
-import { TaskForm } from "./components/TaskForm";
-import { TaskList } from "./components/TaskList";
-import { TaskStats } from "./components/TaskStats";
-import { Toast } from "./components/Toast";
-import { taskRepository } from "./repositories/taskRepository";
-import type { Task, Priority } from "./types/task";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router";
+import { AuthProvider } from "./context/AuthContext";
+import { AppLayout } from "./layouts/AppLayout";
+import { ProtectedRoute } from "./components/ProtectedRoute";
+
+import { TasksPage } from "./pages/TasksPage";
+import { TaskDetailsPage } from "./pages/TaskDetailsPage";
+import { LoginPage } from "./pages/LoginPage";
+import { ProfilePage } from "./pages/ProfilePage";
+import { NotFoundPage } from "./pages/NotFoundPage";
 
 export default function App() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  const handleAddTask = async (
-    title: string,
-    _description: string,
-    _category: string,
-    _priority: Priority,
-  ) => {
-    try {
-      const newTask = await taskRepository.create({ title, completed: false });
-      setTasks((prev) => [newTask, ...prev]);
-      setToastMessage("Завдання успішно створено на сервері!");
-    } catch (err) {
-      setToastMessage("Помилка створення завдання.");
-    }
-  };
-
   return (
-    <div className="container py-4">
-      <div className="row justify-content-center">
-        <div className="col-md-8">
-          <Header />
-          <TaskStats tasks={tasks} />
-          <TaskForm onAddTask={handleAddTask} />
-          <TaskList tasks={tasks} setTasks={setTasks} />
-        </div>
-      </div>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<AppLayout />}>
+            <Route index element={<Navigate to="/tasks" replace />} />
+            <Route path="tasks" element={<TasksPage />} />
+            <Route path="tasks/:taskId" element={<TaskDetailsPage />} />
+            <Route path="login" element={<LoginPage />} />
 
-      {toastMessage && (
-        <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
-      )}
-    </div>
+            {/* Захищений маршрут для Профілю */}
+            <Route
+              path="profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
